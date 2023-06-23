@@ -1,5 +1,5 @@
-import asyncio
 import logging
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from json.decoder import JSONDecodeError
@@ -26,7 +26,7 @@ class ETLHandler:
     state_option: str = 'modified'
 
     def transform_data(self, rows: list):
-        """Transform data for uploading to Elasticsearch."""
+        """Преобразуйте данные для загрузки в Elasticsearch."""
         try:
             return [
                 {
@@ -39,7 +39,7 @@ class ETLHandler:
             logging.exception(exc)
             raise exc
 
-    async def process(self, elastic_conn, state: State):
+    def process(self, elastic_conn, state: State):
         self.last_modified_date = state.get_state(key=self.config.state_key, default='1970-01-01')
         formatted_query = self.config.query.format(
             last_md_date=self.last_modified_date,
@@ -67,7 +67,7 @@ class ETLHandler:
                         f' to {new_last_modified_date}')
 
         logging.info('ETL for %s finished. Paused for {SLEEP_TIME_SECONDS} seconds', self.config.elastic_index_name)
-        await asyncio.sleep(SLEEP_TIME_SECONDS)
+        time.sleep(SLEEP_TIME_SECONDS)
 
 
 def get_etl_handlers(conn, configs: List[ETLConfig]) -> List[ETLHandler]:

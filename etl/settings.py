@@ -15,10 +15,10 @@ dsl = {
     'options': '-c search_path=content'
 }
 
-ELASTIC_HOST = os.getenv('ELASTIC_HOST', 'localhost')
+ELASTIC_HOST = os.getenv('ELASTIC_HOST', 'elastic')
 ELASTIC_PORT = int(os.getenv('ELASTIC_PORT', 9200))
 
-REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 
 SLEEP_TIME_SECONDS = int(os.getenv('SLEEP_TIME', 60))

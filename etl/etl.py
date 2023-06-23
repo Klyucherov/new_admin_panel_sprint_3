@@ -1,12 +1,13 @@
-import asyncio
 import logging
+import time
 
 import elasticsearch
 import psycopg2
+from redis import exceptions as redis_exceptions
+
 from db.connection_handler import (PostgreConnError, connect_db,
                                    create_elastic_connection,
                                    create_redis_connection)
-from redis import exceptions as redis_exceptions
 from services.elastic_loader_service import create_indices
 from services.etl_handler_service import get_etl_handlers
 from services.state_service import RedisStorage, State
@@ -18,7 +19,7 @@ logging.basicConfig(
 )
 
 
-async def start_etl():
+def start_etl():
     """Главный процесс"""
     logging.info('Start etl process')
     db_conn = None
@@ -34,11 +35,10 @@ async def start_etl():
             while True:
 
                 try:
-                    tasks = []
                     for etl_handler in etl_handlers:
-                        tasks.append(etl_handler.process(elastic_conn=elastic, state=state))
-                    await asyncio.gather(*tasks)
+                        etl_handler.process(elastic_conn=elastic, state=state)
                     logging.info('ETL resume. Start scan for changes')
+                    time.sleep(1)
 
                 except PostgreConnError as db_error:
                     logging.exception(f"Extraction failed. Database connection closed: \n\t {db_error}. "
@@ -64,7 +64,7 @@ async def start_etl():
 
 
 def main():
-    asyncio.run(start_etl())
+    start_etl()
 
 
 if __name__ == '__main__':
