@@ -1,4 +1,4 @@
-new_film_query = """
+query_film_work = """
 WITH modified_genres AS (
     SELECT
         gfw.film_work_id, g.modified
@@ -19,39 +19,28 @@ WITH modified_genres AS (
     FROM
         content.film_work
     WHERE modified > '{last_md_date}'
-), modified_records AS (
-    SELECT film_work_id, modified
-    FROM modified_genres
+), ordered_records AS (
+    SELECT film_work_id, modified FROM modified_genres
     UNION
     SELECT * FROM modified_persons
     UNION
     SELECT * FROM modified_filmworks
-), partitioned_records AS (
-    SELECT *,
-    ROW_NUMBER() OVER (PARTITION BY film_work_id ORDER BY modified DESC) as instance_number
-    FROM
-        modified_records
 )
 SELECT
    fw.id,
    fw.rating AS imdb_rating,
-   COALESCE (
-       json_agg(
-           DISTINCT jsonb_build_object(
-               'id', g.id,
-               'name', g.name
-           )
-       ),
-       '[]'
-   ) as genres,
+   array_agg(DISTINCT g.name) as genre,
    fw.title,
    fw.description,
-   pr.modified,
+   ordered_records.modified,
+   COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'director' AND p.full_name IS NOT NULL), '{{}}') AS director,
+   COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'actor' AND p.full_name IS NOT NULL), '{{}}') AS actors_names,
+   COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'writer' AND p.full_name IS NOT NULL), '{{}}') AS writers_names,
    COALESCE (
        json_agg(
            DISTINCT jsonb_build_object(
                'id', p.id,
-               'full_name', p.full_name
+               'name', p.full_name
            )
        ) FILTER (WHERE pfw.role = 'actor'),
        '[]'
@@ -60,63 +49,18 @@ SELECT
        json_agg(
            DISTINCT jsonb_build_object(
                'id', p.id,
-               'full_name', p.full_name
+               'name', p.full_name
            )
        ) FILTER (WHERE pfw.role = 'writer'),
        '[]'
-   ) as writers,
-      COALESCE (
-       json_agg(
-           DISTINCT jsonb_build_object(
-               'id', p.id,
-               'full_name', p.full_name
-           )
-       ) FILTER (WHERE pfw.role = 'director'),
-       '[]'
-   ) as directors
-FROM partitioned_records pr
-LEFT JOIN content.film_work fw ON pr.film_work_id = fw.id
+   ) as writers
+FROM ordered_records
+LEFT JOIN content.film_work fw ON ordered_records.film_work_id = fw.id
 LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
 LEFT JOIN content.person p ON p.id = pfw.person_id
 LEFT JOIN content.genre_film_work gfw ON gfw.film_work_id = fw.id
 LEFT JOIN content.genre g ON g.id = gfw.genre_id
-WHERE instance_number = 1 AND pr.modified > '{last_md_date}'
-GROUP BY fw.id, pr.modified
-ORDER BY pr.modified
-LIMIT {limit}
-"""
-
-query_persons = """
-SELECT
-    p.id,
-    p.modified,
-    p.full_name,
-    COALESCE (
-        array_agg(DISTINCT pfw.role) 
-            FILTER (WHERE pfw.role IS NOT NULL), 
-        '{{}}'
-        ) AS role,
-    COALESCE (
-        array_agg(DISTINCT pfw.film_work_id::text),
-        '{{}}'
-        ) AS film_ids
-FROM
-    content.person_film_work pfw
-    LEFT JOIN content.person p ON p.id = pfw.person_id
-WHERE p.modified > '{last_md_date}'
-GROUP BY p.id
-ORDER BY p.modified
-LIMIT {limit}
-"""
-
-query_genres = """
-SELECT
-    g.id,
-    g.name,
-    g.modified
-FROM
-    content.genre g
-WHERE g.modified > '{last_md_date}'
-ORDER BY g.modified
-LIMIT {limit}
+GROUP BY fw.id, ordered_records.modified
+ORDER BY ordered_records.modified
+LIMIT {limit};
 """

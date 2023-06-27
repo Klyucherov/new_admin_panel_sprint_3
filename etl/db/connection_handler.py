@@ -63,7 +63,7 @@ def connect_db(params: dict):
 
 @contextmanager
 def pg_context(params: dict):
-    """Соединение с PostgreSQL."""
+    """Connection to db PostgreSQL."""
     conn = connect_db(params)
     yield conn
     conn.close()

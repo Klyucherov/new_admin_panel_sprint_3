@@ -2,9 +2,9 @@ import os
 from dataclasses import dataclass
 from typing import Callable
 
-from core.indices import genre_index, movies_index, person_index
-from core.queries import new_film_query, query_genres, query_persons
-from models.models import Film, Genre, Person
+from core.indices import movies_index
+from core.queries import query_film_work
+from models.models import Film
 
 dsl = {
     'dbname': os.getenv('DB_NAME', 'movies_database'),
@@ -15,10 +15,10 @@ dsl = {
     'options': '-c search_path=content'
 }
 
-ELASTIC_HOST = os.getenv('ELASTIC_HOST', 'elastic')
+ELASTIC_HOST = os.getenv('ELASTIC_HOST', 'localhost')
 ELASTIC_PORT = int(os.getenv('ELASTIC_PORT', 9200))
 
-REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
+REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 
 SLEEP_TIME_SECONDS = int(os.getenv('SLEEP_TIME', 60))
@@ -41,7 +41,5 @@ class ETLConfig:
 
 
 ETL_CONFIGS = [
-    ETLConfig(new_film_query, movies_index, 'film_last_modified_date', 'movies', Film, limit_size=DB_FILM_LIMIT),
-    ETLConfig(query_genres, genre_index, 'genre_last_modified_date', 'genres', Genre, limit_size=DB_GENRE_LIMIT),
-    ETLConfig(query_persons, person_index, 'person_last_modified_date', 'persons', Person, limit_size=DB_PERSON_LIMIT)
+    ETLConfig(query_film_work, movies_index, 'film_last_modified_date', 'movies', Film, limit_size=DB_FILM_LIMIT)
 ]

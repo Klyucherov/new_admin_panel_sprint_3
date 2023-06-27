@@ -1,41 +1,26 @@
-from datetime import date
 from typing import List, Optional
 
-import orjson
 from pydantic import BaseModel
 
 
-def orjson_dumps(v, *, default):
-    return orjson.dumps(v, default=default).decode()
-
-
-class Base(BaseModel):
-    id: str
-
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
-
-
-class PersonBase(Base):
-    full_name: str
-
-
-class Person(PersonBase):
-    role: List[str] = []
-    film_ids: List[str] = []
-
-
-class Genre(Base):
+class Genre(BaseModel):
+    id: Optional[str]
     name: str
 
 
-class Film(Base):
+class Person(BaseModel):
+    id: str
+    name: str
+
+
+class Film(BaseModel):
+    id: str
+    imdb_rating: Optional[float]
+    genre: List[str]
     title: str
-    description: str = None
-    creation_date: date = None
-    imdb_rating: Optional[float] = None
-    genres: List[Genre] = []
-    actors: List[PersonBase] = []
-    directors: List[PersonBase] = []
-    writers: List[PersonBase] = []
+    description: Optional[str]
+    director: List[str]
+    actors_names: List[str]
+    writers_names: List[str]
+    actors: List[Person]
+    writers: List[Person]

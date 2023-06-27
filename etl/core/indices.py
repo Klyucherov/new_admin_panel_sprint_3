@@ -1,4 +1,4 @@
-SETTINGS = {
+settings = {
     "refresh_interval": "1s",
     "analysis": {
         "filter": {
@@ -39,52 +39,8 @@ SETTINGS = {
     }
 }
 
-PERSONS_SETTINGS = {
-    "type": "nested",
-    "dynamic": "strict",
-    "properties": {
-        "id": {
-            "type": "keyword"
-        },
-        "full_name": {
-            "type": "text",
-            "analyzer": "ru_en"
-        }
-    }
-}
-
-GENRE_SETTINGS = {
-    "id": {
-        "type": "keyword"
-    },
-    "name": {
-        "type": "text",
-        "analyzer": "ru_en",
-        "fields": {
-            "raw": {
-                "type": "keyword"
-            }
-        }
-    }
-}
-
-TEXT_SETTINGS = {
-    "type": "text",
-    "analyzer": "ru_en"
-}
-
-TEXT_KEYWORD_SETTINGS = {
-    "type": "text",
-    "analyzer": "ru_en",
-    "fields": {
-        "raw": {
-            "type": "keyword"
-        }
-    }
-}
-
 movies_index = {
-    "settings": SETTINGS,
+    "settings": settings,
     "mappings": {
         "dynamic": "strict",
         "properties": {
@@ -94,44 +50,60 @@ movies_index = {
             "imdb_rating": {
                 "type": "float"
             },
-            "genres": {
+            "genre": {
+                "type": "keyword"
+            },
+            "title": {
+                "type": "text",
+                "analyzer": "ru_en",
+                "fields": {
+                    "raw": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "description": {
+                "type": "text",
+                "analyzer": "ru_en"
+            },
+            "director": {
+                "type": "text",
+                "analyzer": "ru_en"
+            },
+            "actors_names": {
+                "type": "text",
+                "analyzer": "ru_en"
+            },
+            "writers_names": {
+                "type": "text",
+                "analyzer": "ru_en"
+            },
+            "actors": {
                 "type": "nested",
                 "dynamic": "strict",
-                "properties": GENRE_SETTINGS
+                "properties": {
+                    "id": {
+                        "type": "keyword"
+                    },
+                    "name": {
+                        "type": "text",
+                        "analyzer": "ru_en"
+                    }
+                }
             },
-            "creation_date": {
-                "type": "date"
-            },
-            "title": TEXT_KEYWORD_SETTINGS,
-            "description": TEXT_SETTINGS,
-            "actors": PERSONS_SETTINGS,
-            "writers": PERSONS_SETTINGS,
-            "directors": PERSONS_SETTINGS
-        }
-    }
-}
-
-genre_index = {
-    "settings": SETTINGS,
-    "mappings": {
-        "dynamic": "strict",
-        "properties": GENRE_SETTINGS
-    }
-}
-
-person_index = {
-    "settings": SETTINGS,
-    "mappings": {
-        "dynamic": "strict",
-        "properties": {
-            "id": {
-                "type": "keyword"
-            },
-            "full_name": TEXT_KEYWORD_SETTINGS,
-            "role": TEXT_KEYWORD_SETTINGS,
-            "film_ids": {
-                "type": "keyword"
+            "writers": {
+                "type": "nested",
+                "dynamic": "strict",
+                "properties": {
+                    "id": {
+                        "type": "keyword"
+                    },
+                    "name": {
+                        "type": "text",
+                        "analyzer": "ru_en"
+                    }
+                }
             }
-        }
+        },
     }
 }

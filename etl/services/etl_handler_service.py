@@ -32,7 +32,7 @@ class ETLHandler:
                 {
                     "_index": self.config.elastic_index_name,
                     "_id": row['id'],
-                    "_source": self.config.related_model(**row).json()
+                    "_source": self.config.related_model(**row).dict()
                 } for row in rows
             ]
         except (pydantic_errors.Any, JSONDecodeError) as exc:
